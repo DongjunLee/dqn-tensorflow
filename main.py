@@ -11,30 +11,36 @@ import numpy as np
 import tensorflow as tf
 import random
 from collections import deque
-import dqn
 
 import gym
 from typing import List
 
-env = gym.make('CartPole-v0')
-env = gym.wrappers.Monitor(env, directory="gym-results/", force=True)
+from dqn import DeepQNetwork
+from config import Config
+
+
+flags = tf.app.flags
+flags.DEFINE_float('discount_rate', 0.99, 'Initial discount rate.')
+flags.DEFINE_integer('replay_memory_length', 50000, 'Number of replay memory episode.')
+flags.DEFINE_integer('target_update_count', 5, 'DQN Target Network update count.')
+flags.DEFINE_integer('max_episode_count', 5000, 'Number of maximum episodes.')
+flags.DEFINE_integer('batch_size', 64, 'Batch size. (Must divide evenly into the dataset sizes)')
+flags.DEFINE_string('gym_result_dir', 'gym-results/', 'Directory to put the gym results.')
+flags.DEFINE_string('gym_env', 'CartPole-v0', 'Name of Open Gym\'s enviroment name.')
+
+FLAGS = flags.FLAGS
+
+env = gym.make(FLAGS.gym_env)
+env = gym.wrappers.Monitor(env, directory=FLAGS.gym_result_dir, force=True)
 
 # Constants defining our neural network
-INPUT_SIZE = env.observation_space.shape[0]
-OUTPUT_SIZE = env.action_space.n
+config = Config(env)
 
-DISCOUNT_RATE = 0.99
-REPLAY_MEMORY = 50000
-BATCH_SIZE = 64
-TARGET_UPDATE_FREQUENCY = 5
-MAX_EPISODES = 5000
-
-
-def replay_train(mainDQN: dqn.DQN, targetDQN: dqn.DQN, train_batch: list) -> float:
+def replay_train(mainDQN: DeepQNetwork, targetDQN: DeepQNetwork, train_batch: list) -> float:
     """Trains `mainDQN` with target Q values given by `targetDQN`
     Args:
-        mainDQN (dqn.DQN): Main DQN that will be trained
-        targetDQN (dqn.DQN): Target DQN that will predict Q_target
+        mainDQN (DeepQNetwork``): Main DQN that will be trained
+        targetDQN (DeepQNetwork): Target DQN that will predict Q_target
         train_batch (list): Minibatch of replay memory
             Each element is (s, a, r, s', done)
             [(state, action, reward, next_state, done), ...]
@@ -49,7 +55,7 @@ def replay_train(mainDQN: dqn.DQN, targetDQN: dqn.DQN, train_batch: list) -> flo
 
     X = states
 
-    Q_target = rewards + DISCOUNT_RATE * np.max(targetDQN.predict(next_states), axis=1) * ~done
+    Q_target = rewards + FLAGS.discount_rate * np.max(targetDQN.predict(next_states), axis=1) * ~done
 
     y = mainDQN.predict(states)
     y[np.arange(len(X)), actions] = Q_target
@@ -80,10 +86,10 @@ def get_copy_var_ops(*, dest_scope_name: str, src_scope_name: str) -> List[tf.Op
     return op_holder
 
 
-def bot_play(mainDQN: dqn.DQN, env: gym.Env) -> None:
+def bot_play(mainDQN: DeepQNetwork, env: gym.Env) -> None:
     """Test runs with rendering and prints the total score
     Args:
-        mainDQN (dqn.DQN): DQN agent to run a test
+        mainDQN (DeepQNetwork): DQN agent to run a test
         env (gym.Env): Gym Environment
     """
     state = env.reset()
@@ -103,13 +109,13 @@ def bot_play(mainDQN: dqn.DQN, env: gym.Env) -> None:
 
 def main():
     # store the previous observations in replay memory
-    replay_buffer = deque(maxlen=REPLAY_MEMORY)
+    replay_buffer = deque(maxlen=FLAGS.replay_memory_length)
 
     last_100_game_reward = deque(maxlen=100)
 
     with tf.Session() as sess:
-        mainDQN = dqn.DQN(sess, INPUT_SIZE, OUTPUT_SIZE, name="main")
-        targetDQN = dqn.DQN(sess, INPUT_SIZE, OUTPUT_SIZE, name="target")
+        mainDQN = DeepQNetwork(sess, config.input_size, config.output_size, name="main")
+        targetDQN = DeepQNetwork(sess, config.input_size, config.output_size, name="target")
         sess.run(tf.global_variables_initializer())
 
         # initial copy q_net -> target_net
@@ -117,7 +123,7 @@ def main():
                                     src_scope_name="main")
         sess.run(copy_ops)
 
-        for episode in range(MAX_EPISODES):
+        for episode in range(FLAGS.max_episode_count):
             e = 1. / ((episode / 10) + 1)
             done = False
             step_count = 0
@@ -139,11 +145,11 @@ def main():
                 # Save the experience to our buffer
                 replay_buffer.append((state, action, reward, next_state, done))
 
-                if len(replay_buffer) > BATCH_SIZE:
-                    minibatch = random.sample(replay_buffer, BATCH_SIZE)
+                if len(replay_buffer) > FLAGS.batch_size:
+                    minibatch = random.sample(replay_buffer, FLAGS.batch_size)
                     loss, _ = replay_train(mainDQN, targetDQN, minibatch)
 
-                if step_count % TARGET_UPDATE_FREQUENCY == 0:
+                if step_count % FLAGS.target_update_count == 0:
                     sess.run(copy_ops)
 
                 state = next_state

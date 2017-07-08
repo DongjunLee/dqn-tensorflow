@@ -10,7 +10,7 @@ import numpy as np
 import tensorflow as tf
 
 
-class DQN:
+class DeepQNetwork:
 
     def __init__(self, session: tf.Session, input_size: int, output_size: int, name: str="main") -> None:
         """DQN Agent can

@@ -6,10 +6,35 @@
 
 ## TO DO
 
-- Config to tf.flag
-- Simple Refactoring
-- CardPole to Atari
+- Test: Atari
 - model.json -> build_graph (MLP, ConvNet, RNN, etc..)
+
+## Results
+
+### Classic control
+
+1. CartPole-v0 
+	- defines "solving" as getting average reward of 195.0 over 100 consecutive trials.
+	- **Model** : Shallow Network (hidden_size=128)
+	-  Game Cleared in 155 episodes with avg reward 195.45
+
+![images](images/CartPole-v0.gif)
+
+2. CartPole-v1
+	- defines "solving" as getting average reward of 475.0 over 100 consecutive trials.
+	- **Model** : Shallow Network (hidden_size=128)
+	- Game Cleared in 775 episodes with avg reward 477.2
+
+![images](images/CartPole-v1.gif)
+
+3. MountainCar-v0
+	- defines "solving" as getting average reward of -110.0 over 100 consecutive trials.
+	- **Model** : Shallow Network (hidden_size=128)
+	- Game Cleared in 1586 episodes with avg reward -109.84
+
+![images](images/MountainCar-v0.gif)
+
+
 
 ## Reference
 

@@ -7,13 +7,15 @@ Notes:
     Loss: (y_i - Q(state, action; 𝜃))^2
     Every C step, 𝜃_target <- 𝜃
 """
+
+from collections import deque
+import logging
+import random
+from typing import List
+
 import numpy as np
 import tensorflow as tf
-import random
-from collections import deque
-
 import gym
-from typing import List
 
 from dqn import DeepQNetwork
 from config import Config
@@ -33,8 +35,11 @@ FLAGS = flags.FLAGS
 env = gym.make(FLAGS.gym_env)
 env = gym.wrappers.Monitor(env, directory=FLAGS.gym_result_dir, force=True)
 
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
 # Constants defining our neural network
-config = Config(env)
+config = Config(env, FLAGS.gym_env)
 
 def replay_train(mainDQN: DeepQNetwork, targetDQN: DeepQNetwork, train_batch: list) -> float:
     """Trains `mainDQN` with target Q values given by `targetDQN`
@@ -87,7 +92,7 @@ def get_copy_var_ops(*, dest_scope_name: str, src_scope_name: str) -> List[tf.Op
 
 
 def bot_play(mainDQN: DeepQNetwork, env: gym.Env) -> None:
-    """Test runs with rendering and prints the total score
+    """Test runs with rendering and logger.infos the total score
     Args:
         mainDQN (DeepQNetwork): DQN agent to run a test
         env (gym.Env): Gym Environment
@@ -96,22 +101,27 @@ def bot_play(mainDQN: DeepQNetwork, env: gym.Env) -> None:
     reward_sum = 0
 
     while True:
-
         env.render()
         action = np.argmax(mainDQN.predict(state))
         state, reward, done, _ = env.step(action)
         reward_sum += reward
 
         if done:
-            print("Total score: {}".format(reward_sum))
+            logger.info("Total score: {}".format(reward_sum))
             break
 
 
 def main():
+    logger.info("FLAGS configure.")
+    logger.info(FLAGS.__flags)
+
     # store the previous observations in replay memory
     replay_buffer = deque(maxlen=FLAGS.replay_memory_length)
 
-    last_100_game_reward = deque(maxlen=100)
+    consecutive_len = 100 # default value
+    if config.solving_criteria:
+        consecutive_len = config.solving_criteria[0]
+    last_n_game_reward = deque(maxlen=consecutive_len)
 
     with tf.Session() as sess:
         mainDQN = DeepQNetwork(sess, config.input_size, config.output_size, name="main")
@@ -127,7 +137,11 @@ def main():
             e = 1. / ((episode / 10) + 1)
             done = False
             step_count = 0
+
             state = env.reset()
+            e_reward = 0
+            model_loss = 0
+            avg_reward = np.mean(last_n_game_reward)
 
             while not done:
                 if np.random.rand() < e:
@@ -139,7 +153,7 @@ def main():
                 # Get new state and reward from environment
                 next_state, reward, done, _ = env.step(action)
 
-                if done:  # Penalty
+                if done and FLAGS.gym_env.startswith("CartPole"):  # Penalty
                     reward = -1
 
                 # Save the experience to our buffer
@@ -148,23 +162,25 @@ def main():
                 if len(replay_buffer) > FLAGS.batch_size:
                     minibatch = random.sample(replay_buffer, FLAGS.batch_size)
                     loss, _ = replay_train(mainDQN, targetDQN, minibatch)
+                    model_loss = loss
 
                 if step_count % FLAGS.target_update_count == 0:
                     sess.run(copy_ops)
 
                 state = next_state
+                e_reward += reward
                 step_count += 1
 
-            print("Episode: {}  steps: {}".format(episode, step_count))
+            logger.info(f"Episode: {episode}  reward: {e_reward}  loss: {model_loss}  consecutive_{consecutive_len}_avg_reward: {avg_reward}")
 
             # CartPole-v0 Game Clear Checking Logic
-            last_100_game_reward.append(step_count)
+            last_n_game_reward.append(e_reward)
 
-            if len(last_100_game_reward) == last_100_game_reward.maxlen:
-                avg_reward = np.mean(last_100_game_reward)
+            if len(last_n_game_reward) == last_n_game_reward.maxlen:
+                avg_reward = np.mean(last_n_game_reward)
 
-                if avg_reward > 199:
-                    print(f"Game Cleared in {episode} episodes with avg reward {avg_reward}")
+                if config.solving_criteria and  avg_reward > (config.solving_criteria[1]):
+                    logger.info(f"Game Cleared in {episode} episodes with avg reward {avg_reward}")
                     break
 
 

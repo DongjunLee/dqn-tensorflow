@@ -30,7 +30,7 @@ class DeepQNetwork:
 
         self._build_network()
 
-    def _build_network(self, h_size=16, l_rate=0.001) -> None:
+    def _build_network(self, h_size=128, l_rate=0.001) -> None:
         """DQN Network architecture (simple MLP)
         Args:
             h_size (int, optional): Hidden layer dimension
@@ -73,3 +73,12 @@ class DeepQNetwork:
             self._Y: y_stack
         }
         return self.session.run([self._loss, self._train], feed)
+
+
+class Model:
+
+    def __init__(self):
+        pass
+
+    def build_network(self, config):
+        pass

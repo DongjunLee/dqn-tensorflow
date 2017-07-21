@@ -9,10 +9,13 @@ http://web.stanford.edu/class/psych209/Readings/MnihEtAlHassibis15NatureControlD
 import numpy as np
 import tensorflow as tf
 
+from model import MLPv1
+from model import ConvNetv1
+
 
 class DeepQNetwork:
 
-    def __init__(self, session: tf.Session, input_size: int, output_size: int, name: str="main") -> None:
+    def __init__(self, session: tf.Session, input_size: int, output_size: int, learning_rate: float=0.0001, name: str="main") -> None:
         """DQN Agent can
         1) Build network
         2) Predict Q_value given state
@@ -30,25 +33,17 @@ class DeepQNetwork:
 
         self._build_network()
 
-    def _build_network(self, h_size=128, l_rate=0.001) -> None:
-        """DQN Network architecture (simple MLP)
-        Args:
-            h_size (int, optional): Hidden layer dimension
-            l_rate (float, optional): Learning rate
-        """
+    def _build_network(self, model_name="MLPv1") -> None:
         with tf.variable_scope(self.net_name):
             self._X = tf.placeholder(tf.float32, [None, self.input_size], name="input_x")
-            net = self._X
 
-            net = tf.layers.dense(net, h_size, activation=tf.nn.relu)
-            net = tf.layers.dense(net, self.output_size)
-            self._Qpred = net
+            model = globals()[model_name](self._X, self.output_size)
+            model.build_network()
 
-            self._Y = tf.placeholder(tf.float32, shape=[None, self.output_size])
-            self._loss = tf.losses.mean_squared_error(self._Y, self._Qpred)
-
-            optimizer = tf.train.AdamOptimizer(learning_rate=l_rate)
-            self._train = optimizer.minimize(self._loss)
+            self._Qpred = model.inference
+            self._Y = model.Y
+            self._loss = model.loss
+            self._train = model.optimizer
 
     def predict(self, state: np.ndarray) -> np.ndarray:
         """Returns Q(s, a)

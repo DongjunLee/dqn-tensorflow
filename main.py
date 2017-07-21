@@ -27,8 +27,10 @@ flags.DEFINE_integer('replay_memory_length', 50000, 'Number of replay memory epi
 flags.DEFINE_integer('target_update_count', 5, 'DQN Target Network update count.')
 flags.DEFINE_integer('max_episode_count', 5000, 'Number of maximum episodes.')
 flags.DEFINE_integer('batch_size', 64, 'Batch size. (Must divide evenly into the dataset sizes)')
+flags.DEFINE_string('model_name', 'MLPv1', 'DeepLearning Network Model name (MLPv1, ConvNetv1)')
+flags.DEFINE_float('learning_rate', 0.0001, 'Batch size. (Must divide evenly into the dataset sizes)')
 flags.DEFINE_string('gym_result_dir', 'gym-results/', 'Directory to put the gym results.')
-flags.DEFINE_string('gym_env', 'CartPole-v0', 'Name of Open Gym\'s enviroment name.')
+flags.DEFINE_string('gym_env', 'CartPole-v0', 'Name of Open Gym\'s enviroment name. (CartPole-v0, CartPole-v1, MountainCar-v0)')
 
 FLAGS = flags.FLAGS
 
@@ -124,7 +126,7 @@ def main():
     last_n_game_reward = deque(maxlen=consecutive_len)
 
     with tf.Session() as sess:
-        mainDQN = DeepQNetwork(sess, config.input_size, config.output_size, name="main")
+        mainDQN = DeepQNetwork(sess, config.input_size, config.output_size, learning_rate=FLAGS.learning_rate, name="main")
         targetDQN = DeepQNetwork(sess, config.input_size, config.output_size, name="target")
         sess.run(tf.global_variables_initializer())
 

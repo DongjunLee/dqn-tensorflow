@@ -7,32 +7,35 @@
 ## TO DO
 
 - Test: Atari
-- model.json -> build_graph (MLP, ConvNet, RNN, etc..)
 
-## Results
+## Model
+
+### 1. MLPv1
+
+- hidden layer (16, 64, 32)
+- mean squared error
+- AdamOptimizer
+
+### 2. ConvNetv1
+
+- Conv + Pool (3x3 kernel, 3 layer (32, 64, 128)
+- Fully Connected Layer (2 layer (128, 32))
+- softmax cross entropy
+- AdamOptimizer
+
+## Expertiments
 
 ### Classic control
 
-1. CartPole-v0 
-	- defines "solving" as getting average reward of 195.0 over 100 consecutive trials.
-	- **Model** : Shallow Network (hidden_size=128)
-	-  Game Cleared in 155 episodes with avg reward 195.45
+| CartPole-v0 | CartPole-v1 | MountainCar-v0 |
+| ------- | ----------- | ------------ |
+| defines "solving" as getting average reward of **195.0** over 100 consecutive trials. | defines "solving" as getting average reward of **475.0** over 100 consecutive trials. | defines "solving" as getting average reward of **-110.0** over 100 consecutive trials. |
+| **Model** : MLPv1 | **Model** : MLPv1 | **Model** : MLPv1 |
+| **Clear** : after 177 episode | **Clear** : after 791 episode | **Clear** : after 1182 episode |  
+| ![images](images/CartPole-v0.gif) | ![images](images/CartPole-v1.gif) | ![images](images/MountainCar-v0.gif) |
 
-![images](images/CartPole-v0.gif)
+### Atari
 
-2. CartPole-v1
-	- defines "solving" as getting average reward of 475.0 over 100 consecutive trials.
-	- **Model** : Shallow Network (hidden_size=128)
-	- Game Cleared in 775 episodes with avg reward 477.2
-
-![images](images/CartPole-v1.gif)
-
-3. MountainCar-v0
-	- defines "solving" as getting average reward of -110.0 over 100 consecutive trials.
-	- **Model** : Shallow Network (hidden_size=128)
-	- Game Cleared in 1586 episodes with avg reward -109.84
-
-![images](images/MountainCar-v0.gif)
 
 
 

@@ -7,6 +7,9 @@
 ## TO DO
 
 - Test: Atari
+	- Stack Observation n frame
+	- Fix X (input) placeholder
+	- Get score > randome average score (base) * 5
 
 ## Model
 

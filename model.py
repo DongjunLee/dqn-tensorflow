@@ -41,9 +41,10 @@ class ConvNetv1:
 
         conv3 = tf.layers.conv2d(pool2, 128, kernel_size=[3, 3], padding="same", activation=tf.nn.relu)
         pool3 = tf.layers.max_pooling2d(inputs=conv3, pool_size=[2, 2], strides=2)
+        pool3_flat = tf.reshape(pool3, [-1, 31 * 20 * 128])
 
-        net = tf.layers.dense(pool3, 128)
-        net = tf.layers.dense(net, 32)
+        net = tf.layers.dense(pool3_flat, 512)
+        net = tf.layers.dense(net, 128)
         net = tf.layers.dense(net, self.num_classes)
         self.inference = net
 

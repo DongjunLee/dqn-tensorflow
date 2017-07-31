@@ -35,13 +35,14 @@ flags.DEFINE_string('gym_env', 'CartPole-v0', 'Name of Open Gym\'s enviroment na
 FLAGS = flags.FLAGS
 
 env = gym.make(FLAGS.gym_env)
-env = gym.wrappers.Monitor(env, directory=FLAGS.gym_result_dir, force=True)
+env = gym.wrappers.Monitor(env, directory=FLAGS.gym_env + "_" + FLAGS.gym_result_dir, force=True)
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 # Constants defining our neural network
 config = Config(env, FLAGS.gym_env)
+
 
 def replay_train(mainDQN: DeepQNetwork, targetDQN: DeepQNetwork, train_batch: list) -> float:
     """Trains `mainDQN` with target Q values given by `targetDQN`
@@ -54,15 +55,16 @@ def replay_train(mainDQN: DeepQNetwork, targetDQN: DeepQNetwork, train_batch: li
     Returns:
         float: After updating `mainDQN`, it returns a `loss`
     """
-    states = np.vstack([x[0] for x in train_batch])
+    states = np.array([x[0] for x in train_batch])
     actions = np.array([x[1] for x in train_batch])
     rewards = np.array([x[2] for x in train_batch])
-    next_states = np.vstack([x[3] for x in train_batch])
+    next_states = np.array([x[3] for x in train_batch])
     done = np.array([x[4] for x in train_batch])
 
     X = states
 
-    Q_target = rewards + FLAGS.discount_rate * np.max(targetDQN.predict(next_states), axis=1) * ~done
+    predict_result = targetDQN.predict(next_states)
+    Q_target = rewards + FLAGS.discount_rate * np.max(predict_result, axis=1) * ~done
 
     y = mainDQN.predict(states)
     y[np.arange(len(X)), actions] = Q_target
@@ -126,8 +128,8 @@ def main():
     last_n_game_reward = deque(maxlen=consecutive_len)
 
     with tf.Session() as sess:
-        mainDQN = DeepQNetwork(sess, config.input_size, config.output_size, learning_rate=FLAGS.learning_rate, name="main")
-        targetDQN = DeepQNetwork(sess, config.input_size, config.output_size, name="target")
+        mainDQN = DeepQNetwork(sess, FLAGS.model_name, config.input_size, config.output_size, learning_rate=FLAGS.learning_rate, name="main")
+        targetDQN = DeepQNetwork(sess,FLAGS.model_name, config.input_size, config.output_size, name="target")
         sess.run(tf.global_variables_initializer())
 
         # initial copy q_net -> target_net

@@ -15,7 +15,8 @@ from model import ConvNetv1
 
 class DeepQNetwork:
 
-    def __init__(self, session: tf.Session, input_size: int, output_size: int, learning_rate: float=0.0001, name: str="main") -> None:
+    def __init__(self, session: tf.Session, model_name: str, input_size: int, output_size: int,
+                 learning_rate: float=0.0001, name: str="main") -> None:
         """DQN Agent can
         1) Build network
         2) Predict Q_value given state
@@ -28,16 +29,23 @@ class DeepQNetwork:
         """
         self.session = session
         self.input_size = input_size
+
         self.output_size = output_size
         self.net_name = name
 
-        self._build_network()
+        self._build_network(model_name=model_name)
 
     def _build_network(self, model_name="MLPv1") -> None:
         with tf.variable_scope(self.net_name):
-            self._X = tf.placeholder(tf.float32, [None, self.input_size], name="input_x")
+            X_shape = [None] + list(self.input_size)
+            self._X = tf.placeholder(tf.float32, X_shape, name="input_x")
 
-            model = globals()[model_name](self._X, self.output_size)
+            models = {
+                "MLPv1": MLPv1,
+                "ConvNetv1": ConvNetv1
+            }
+
+            model = models[model_name](self._X, self.output_size)
             model.build_network()
 
             self._Qpred = model.inference
@@ -52,7 +60,8 @@ class DeepQNetwork:
         Returns:
             np.ndarray: Q value array, shape (n, output_dim)
         """
-        x = np.reshape(state, [-1, self.input_size])
+        x_shape = [-1] + list(self.input_size)
+        x = np.reshape(state, x_shape)
         return self.session.run(self._Qpred, feed_dict={self._X: x})
 
     def update(self, x_stack: np.ndarray, y_stack: np.ndarray) -> list:
@@ -68,12 +77,3 @@ class DeepQNetwork:
             self._Y: y_stack
         }
         return self.session.run([self._loss, self._train], feed)
-
-
-class Model:
-
-    def __init__(self):
-        pass
-
-    def build_network(self, config):
-        pass

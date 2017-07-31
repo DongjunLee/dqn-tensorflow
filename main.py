@@ -31,6 +31,7 @@ flags.DEFINE_string('model_name', 'MLPv1', 'DeepLearning Network Model name (MLP
 flags.DEFINE_float('learning_rate', 0.0001, 'Batch size. (Must divide evenly into the dataset sizes)')
 flags.DEFINE_string('gym_result_dir', 'gym-results/', 'Directory to put the gym results.')
 flags.DEFINE_string('gym_env', 'CartPole-v0', 'Name of Open Gym\'s enviroment name. (CartPole-v0, CartPole-v1, MountainCar-v0)')
+flags.DEFINE_boolean('step_verbose', False, 'verbose every step count')
 
 FLAGS = flags.FLAGS
 
@@ -167,6 +168,9 @@ def main():
                     minibatch = random.sample(replay_buffer, FLAGS.batch_size)
                     loss, _ = replay_train(mainDQN, targetDQN, minibatch)
                     model_loss = loss
+
+                    if FLAGS.step_verbose:
+                        logger.info(f"step_count : {step_count}, reward: {reward} loss: {loss} done: {done}")
 
                 if step_count % FLAGS.target_update_count == 0:
                     sess.run(copy_ops)

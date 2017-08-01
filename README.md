@@ -10,6 +10,7 @@
 	- Stack Observation n frame
 	- Fix X (input) placeholder
 	- Get score > randome average score (base) * 5
+	- implements clipped_error for loss
 
 ## Model
 

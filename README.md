@@ -10,21 +10,21 @@
 	- Stack Observation n frame
 	- Fix X (input) placeholder
 	- Get score > randome average score (base) * 5
-	- implements clipped_error for loss
+	- need GPU setting
 
 ## Model
+
+- optimizer : mean squared error
 
 ### 1. MLPv1
 
 - hidden layer (16, 64, 32)
-- mean squared error
 - AdamOptimizer
 
 ### 2. ConvNetv1
 
 - Conv + Pool (3x3 kernel, 3 layer (32, 64, 128)
 - Fully Connected Layer (2 layer (128, 32))
-- softmax cross entropy
 - AdamOptimizer
 
 ## Expertiments

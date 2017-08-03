@@ -49,7 +49,7 @@ class ConvNetv1:
         self.inference = net
 
         self.Y = tf.placeholder(tf.float32, shape=[None, self.num_classes])
-        self.loss = tf.losses.softmax_cross_entropy(self.Y, self.inference)
+        self.loss = tf.losses.mean_squared_error(self.Y, self.inference)
 
         self.optimizer = tf.train.AdamOptimizer(
             learning_rate=self.learning_rate).minimize(self.loss)

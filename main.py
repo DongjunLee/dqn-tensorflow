@@ -65,7 +65,7 @@ def replay_train(mainDQN: DeepQNetwork, targetDQN: DeepQNetwork, train_batch: li
     X = states
 
     predict_result = targetDQN.predict(next_states)
-    Q_target = rewards + FLAGS.discount_rate * np.max(predict_result, axis=1) * ~done
+    Q_target = rewards + FLAGS.discount_rate * np.max(predict_result, axis=1) * ~done # ~False : -1, ~True: -2
 
     y = mainDQN.predict(states)
     y[np.arange(len(X)), actions] = Q_target

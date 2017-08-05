@@ -27,7 +27,7 @@ flags.DEFINE_integer('replay_memory_length', 50000, 'Number of replay memory epi
 flags.DEFINE_integer('target_update_count', 5, 'DQN Target Network update count.')
 flags.DEFINE_integer('max_episode_count', 5000, 'Number of maximum episodes.')
 flags.DEFINE_integer('batch_size', 64, 'Batch size. (Must divide evenly into the dataset sizes)')
-flags.DEFINE_integer('frame_size', 1, 'Frame size. (2, 3, 4)')
+flags.DEFINE_integer('frame_size', 1, 'Frame size. (Stack env\'s observation T-n ~ T)')
 flags.DEFINE_string('model_name', 'MLPv1', 'DeepLearning Network Model name (MLPv1, ConvNetv1)')
 flags.DEFINE_float('learning_rate', 0.0001, 'Batch size. (Must divide evenly into the dataset sizes)')
 flags.DEFINE_string('gym_result_dir', 'gym-results/', 'Directory to put the gym results.')

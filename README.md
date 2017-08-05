@@ -7,14 +7,38 @@
 ## TO DO
 
 - Test: Atari
-	- Stack Observation n frame
-	- Fix X (input) placeholder
-	- Get score > randome average score (base) * 5
-	- need GPU setting
+	- more complex ConvNet model
+
+## Config
+
+```bash
+--discount_rate DISCOUNT_RATE
+                        Initial discount rate.
+  --replay_memory_length REPLAY_MEMORY_LENGTH
+                        Number of replay memory episode.
+  --target_update_count TARGET_UPDATE_COUNT
+                        DQN Target Network update count.
+  --max_episode_count MAX_EPISODE_COUNT
+                        Number of maximum episodes.
+  --batch_size BATCH_SIZE
+                        Batch size. (Must divide evenly into the dataset
+                        sizes)
+  --frame_size FRAME_SIZE
+                        Frame size. (Stack env's observation T-n ~ T)
+  --model_name MODEL_NAME
+                        DeepLearning Network Model name (MLPv1, ConvNetv1)
+  --learning_rate LEARNING_RATE
+                        Batch size. (Must divide evenly into the dataset
+                        sizes)
+  --gym_result_dir GYM_RESULT_DIR
+                        Directory to put the gym results.
+  --gym_env GYM_ENV     Name of Open Gym's enviroment name. (CartPole-v0,
+                        CartPole-v1, MountainCar-v0)
+  --step_verbose [STEP_VERBOSE]
+                        verbose every step count
+```
 
 ## Model
-
-- optimizer : mean squared error
 
 ### 1. MLPv1
 
@@ -40,6 +64,11 @@
 
 ### Atari
 
+| Breakout-ram-v0 |  |  |
+| ------- | ----------- | ------------ |
+| Maximize your score |  |  |
+| **Model** : ConvNetv1 |  |  |
+| **Score** : 9.69 (average from 100 consecutive trials) |  |  |  
 
 
 

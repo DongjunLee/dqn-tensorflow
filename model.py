@@ -18,8 +18,6 @@ class MLPv1:
         net = tf.layers.dense(net, 32, activation=tf.nn.relu)
         net = tf.layers.dense(net, self.num_classes)
 
-        print(net)
-
         self.inference = net
         self.predict = tf.argmax(self.inference, 1)
 
@@ -31,7 +29,6 @@ class MLPv1:
 
 
 class ConvNetv1:
-
 
     def __init__(self, X: tf.placeholder, num_classes: int, frame_size: int=1, learning_rate=0.001) -> None:
         self.X = tf.reshape(X, [-1, 128, frame_size])

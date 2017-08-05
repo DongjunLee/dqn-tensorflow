@@ -39,7 +39,11 @@ class DeepQNetwork:
 
     def _build_network(self, model_name="MLPv1") -> None:
         with tf.variable_scope(self.net_name):
-            X_shape = [None] + list(self.input_size) + [self.frame_size]
+
+            if self.frame_size > 1:
+                X_shape = [None] + list(self.input_size) + [self.frame_size]
+            else:
+                X_shape = [None] + list(self.input_size)
             self._X = tf.placeholder(tf.float32, X_shape, name="input_x")
 
             models = {
@@ -63,7 +67,11 @@ class DeepQNetwork:
         Returns:
             np.ndarray: Q value array, shape (n, output_dim)
         """
-        x_shape = [-1] + list(self.input_size) + [self.frame_size]
+
+        if self.frame_size > 1:
+            x_shape = [-1] + list(self.input_size) + [self.frame_size]
+        else:
+            x_shape = [-1] + list(self.input_size)
         x = np.reshape(state, x_shape)
         return self.session.run(self._Qpred, feed_dict={self._X: x})
 
@@ -75,6 +83,7 @@ class DeepQNetwork:
         Returns:
             list: First element is loss, second element is a result from train step
         """
+
         feed = {
             self._X: x_stack,
             self._Y: y_stack

@@ -27,7 +27,7 @@ flags.DEFINE_integer('replay_memory_length', 50000, 'Number of replay memory epi
 flags.DEFINE_integer('target_update_count', 5, 'DQN Target Network update count.')
 flags.DEFINE_integer('max_episode_count', 5000, 'Number of maximum episodes.')
 flags.DEFINE_integer('batch_size', 64, 'Batch size. (Must divide evenly into the dataset sizes)')
-flags.DEFINE_integer('frame_size', 4, 'Frame size. (2, 3, 4)')
+flags.DEFINE_integer('frame_size', 1, 'Frame size. (2, 3, 4)')
 flags.DEFINE_string('model_name', 'MLPv1', 'DeepLearning Network Model name (MLPv1, ConvNetv1)')
 flags.DEFINE_float('learning_rate', 0.0001, 'Batch size. (Must divide evenly into the dataset sizes)')
 flags.DEFINE_string('gym_result_dir', 'gym-results/', 'Directory to put the gym results.')
@@ -85,11 +85,11 @@ def replay_train(mainDQN: DeepQNetwork, targetDQN: DeepQNetwork, train_batch: li
         # states = np.array(states_stack_frame).reshape((FLAGS.batch_size, state_length, FLAGS.frame_size))
         # next_states = np.array(next_states_stack_frame).reshape((FLAGS.batch_size, state_length, FLAGS.frame_size))
 
-    X = states
 
     predict_result = targetDQN.predict(next_states)
     Q_target = rewards + FLAGS.discount_rate * np.max(predict_result, axis=1) * ~done # ~False : -1, ~True: -2
 
+    X = states
     y = mainDQN.predict(states)
     y[np.arange(len(X)), actions] = Q_target
 

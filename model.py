@@ -4,8 +4,10 @@ import tensorflow as tf
 
 class MLPv1:
 
-    def __init__(self, X: tf.placeholder, num_classes: int, learning_rate=0.001) -> None:
-        self.X = X
+    def __init__(self, X: tf.placeholder, num_classes: int, frame_size: None, learning_rate=0.001) -> None:
+        state_length = X.get_shape().as_list()[1]
+        self.X = tf.reshape(X, [-1, state_length])
+
         self.num_classes = num_classes
         self.learning_rate = learning_rate
 
@@ -15,7 +17,11 @@ class MLPv1:
         net = tf.layers.dense(net, 64, activation=tf.nn.relu)
         net = tf.layers.dense(net, 32, activation=tf.nn.relu)
         net = tf.layers.dense(net, self.num_classes)
+
+        print(net)
+
         self.inference = net
+        self.predict = tf.argmax(self.inference, 1)
 
         self.Y = tf.placeholder(tf.float32, shape=[None, self.num_classes])
         self.loss = tf.losses.mean_squared_error(self.Y, self.inference)
@@ -47,7 +53,9 @@ class ConvNetv1:
         net = tf.layers.dense(pool3_flat, 512)
         net = tf.layers.dense(net, 128)
         net = tf.layers.dense(net, self.num_classes)
+
         self.inference = net
+        self.predict = tf.argmax(self.inference, 1)
 
         self.Y = tf.placeholder(tf.float32, shape=[None, self.num_classes])
         self.loss = tf.losses.mean_squared_error(self.Y, self.inference)

@@ -27,15 +27,8 @@ class MLPv1:
 class ConvNetv1:
 
 
-    def __init__(self, X: tf.placeholder, num_classes: int, learning_rate=0.001) -> None:
-        input_dim = X.get_shape().as_list()[1]
-
-        if input_dim % 4 == 0:
-            self.X = tf.reshape(X, [-1, int(input_dim/4), 4])
-        elif input_dim % 3 == 0:
-            self.X = tf.reshape(X, [-1, int(input_dim/3), 3])
-        elif input_dim % 2 == 0:
-            self.X = tf.reshape(X, [-1, int(input_dim/2), 2])
+    def __init__(self, X: tf.placeholder, num_classes: int, frame_size: int=1, learning_rate=0.001) -> None:
+        self.X = tf.reshape(X, [-1, 128, frame_size])
 
         self.num_classes = num_classes
         self.learning_rate = learning_rate
@@ -49,7 +42,7 @@ class ConvNetv1:
 
         conv3 = tf.layers.conv1d(pool2, 128, kernel_size=3, padding="same", activation=tf.nn.relu)
         pool3 = tf.layers.max_pooling1d(inputs=conv3, pool_size=2, strides=2)
-        pool3_flat = tf.reshape(pool3, [-1, 4 * 128])
+        pool3_flat = tf.reshape(pool3, [-1, 16 * 128])
 
         net = tf.layers.dense(pool3_flat, 512)
         net = tf.layers.dense(net, 128)

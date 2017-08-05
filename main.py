@@ -27,6 +27,7 @@ flags.DEFINE_integer('replay_memory_length', 50000, 'Number of replay memory epi
 flags.DEFINE_integer('target_update_count', 5, 'DQN Target Network update count.')
 flags.DEFINE_integer('max_episode_count', 5000, 'Number of maximum episodes.')
 flags.DEFINE_integer('batch_size', 64, 'Batch size. (Must divide evenly into the dataset sizes)')
+flags.DEFINE_integer('frame_size', 4, 'Frame size. (2, 3, 4)')
 flags.DEFINE_string('model_name', 'MLPv1', 'DeepLearning Network Model name (MLPv1, ConvNetv1)')
 flags.DEFINE_float('learning_rate', 0.0001, 'Batch size. (Must divide evenly into the dataset sizes)')
 flags.DEFINE_string('gym_result_dir', 'gym-results/', 'Directory to put the gym results.')
@@ -45,6 +46,8 @@ logger.setLevel(logging.INFO)
 config = Config(env, FLAGS.gym_env)
 
 
+
+
 def replay_train(mainDQN: DeepQNetwork, targetDQN: DeepQNetwork, train_batch: list) -> float:
     """Trains `mainDQN` with target Q values given by `targetDQN`
     Args:
@@ -56,11 +59,31 @@ def replay_train(mainDQN: DeepQNetwork, targetDQN: DeepQNetwork, train_batch: li
     Returns:
         float: After updating `mainDQN`, it returns a `loss`
     """
-    states = np.array([x[0] for x in train_batch])
-    actions = np.array([x[1] for x in train_batch])
-    rewards = np.array([x[2] for x in train_batch])
-    next_states = np.array([x[3] for x in train_batch])
-    done = np.array([x[4] for x in train_batch])
+    states = np.vstack([x[0] for x in train_batch])
+    actions = np.array([x[1] for x in train_batch[:FLAGS.batch_size]])
+    rewards = np.array([x[2] for x in train_batch[:FLAGS.batch_size]])
+    next_states = np.vstack([x[3] for x in train_batch])
+    done = np.array([x[4] for x in train_batch[:FLAGS.batch_size]])
+
+    state_length = len(states[0])
+
+    # if FLAGS.frame_size > 1:
+        # states_stack_frame = []
+        # next_states_stack_frame = []
+
+        # for i in range(FLAGS.batch_size):
+            # state_stack_frame = []
+            # next_state_stack_frame = []
+
+            # for j in range(FLAGS.frame_size):
+                # state_stack_frame.append(states[i+j])
+                # next_state_stack_frame.append(next_states[i+j])
+
+            # states_stack_frame.append(state_stack_frame)
+            # next_states_stack_frame.append(next_state_stack_frame)
+
+        # states = np.array(states_stack_frame).reshape((FLAGS.batch_size, state_length, FLAGS.frame_size))
+        # next_states = np.array(next_states_stack_frame).reshape((FLAGS.batch_size, state_length, FLAGS.frame_size))
 
     X = states
 
@@ -129,8 +152,8 @@ def main():
     last_n_game_reward = deque(maxlen=consecutive_len)
 
     with tf.Session() as sess:
-        mainDQN = DeepQNetwork(sess, FLAGS.model_name, config.input_size, config.output_size, learning_rate=FLAGS.learning_rate, name="main")
-        targetDQN = DeepQNetwork(sess,FLAGS.model_name, config.input_size, config.output_size, name="target")
+        mainDQN = DeepQNetwork(sess, FLAGS.model_name, config.input_size, config.output_size, learning_rate=FLAGS.learning_rate, frame_size=FLAGS.frame_size, name="main")
+        targetDQN = DeepQNetwork(sess,FLAGS.model_name, config.input_size, config.output_size, frame_size=FLAGS.frame_size, name="target")
         sess.run(tf.global_variables_initializer())
 
         # initial copy q_net -> target_net
@@ -148,6 +171,15 @@ def main():
             model_loss = 0
             avg_reward = np.mean(last_n_game_reward)
 
+            if FLAGS.frame_size > 1:
+                state_with_frame = deque(maxlen=FLAGS.frame_size)
+
+                for _ in range(FLAGS.frame_size):
+                    state_with_frame.append(state)
+
+                state = np.array(state_with_frame)
+                state = np.reshape(state, (1, config.RAM_FIXED_LENGTH, FLAGS.frame_size))
+
             while not done:
                 if np.random.rand() < e:
                     action = env.action_space.sample()
@@ -161,11 +193,17 @@ def main():
                 if done and FLAGS.gym_env.startswith("CartPole"):  # Penalty
                     reward = -1
 
+                if FLAGS.frame_size > 1:
+                    state_with_frame.append(next_state)
+
+                    next_state = np.array(state_with_frame)
+                    next_state = np.reshape(next_state, (1, config.RAM_FIXED_LENGTH, FLAGS.frame_size))
+
                 # Save the experience to our buffer
                 replay_buffer.append((state, action, reward, next_state, done))
 
                 if len(replay_buffer) > FLAGS.batch_size:
-                    minibatch = random.sample(replay_buffer, FLAGS.batch_size)
+                    minibatch = random.sample(replay_buffer, (FLAGS.batch_size))
                     loss, _ = replay_train(mainDQN, targetDQN, minibatch)
                     model_loss = loss
 

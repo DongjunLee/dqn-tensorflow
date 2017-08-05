@@ -16,7 +16,7 @@ from model import ConvNetv1
 class DeepQNetwork:
 
     def __init__(self, session: tf.Session, model_name: str, input_size: int, output_size: int,
-                 learning_rate: float=0.0001, name: str="main") -> None:
+            learning_rate: float=0.0001, frame_size: int=1, name: str="main") -> None:
         """DQN Agent can
         1) Build network
         2) Predict Q_value given state
@@ -29,15 +29,17 @@ class DeepQNetwork:
         """
         self.session = session
         self.input_size = input_size
-
         self.output_size = output_size
+        self.frame_size = frame_size
+
         self.net_name = name
+        self.learning_rate = learning_rate
 
         self._build_network(model_name=model_name)
 
     def _build_network(self, model_name="MLPv1") -> None:
         with tf.variable_scope(self.net_name):
-            X_shape = [None] + list(self.input_size)
+            X_shape = [None] + list(self.input_size) + [self.frame_size]
             self._X = tf.placeholder(tf.float32, X_shape, name="input_x")
 
             models = {
@@ -45,7 +47,8 @@ class DeepQNetwork:
                 "ConvNetv1": ConvNetv1
             }
 
-            model = models[model_name](self._X, self.output_size)
+            model = models[model_name](self._X, self.output_size,
+                                       frame_size=self.frame_size, learning_rate=self.learning_rate)
             model.build_network()
 
             self._Qpred = model.inference
@@ -60,7 +63,7 @@ class DeepQNetwork:
         Returns:
             np.ndarray: Q value array, shape (n, output_dim)
         """
-        x_shape = [-1] + list(self.input_size)
+        x_shape = [-1] + list(self.input_size) + [self.frame_size]
         x = np.reshape(state, x_shape)
         return self.session.run(self._Qpred, feed_dict={self._X: x})
 

@@ -12,3 +12,5 @@ class Config:
             self.solving_criteria = (100, 475)
         elif gym_env == "MountainCar-v0":
             self.solving_criteria = (100, -110)
+
+        self.RAM_FIXED_LENGTH = 128

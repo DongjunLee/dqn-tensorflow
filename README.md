@@ -12,7 +12,9 @@
 ## Config
 
 ```bash
---discount_rate DISCOUNT_RATE
+python main.py -h
+
+  --discount_rate DISCOUNT_RATE
                         Initial discount rate.
   --replay_memory_length REPLAY_MEMORY_LENGTH
                         Number of replay memory episode.
@@ -36,6 +38,8 @@
                         CartPole-v1, MountainCar-v0)
   --step_verbose [STEP_VERBOSE]
                         verbose every step count
+  --step_verbose_count STEP_VERBOSE_COUNT
+                        verbose step count
 ```
 
 ## Model
@@ -47,8 +51,14 @@
 
 ### 2. ConvNetv1
 
-- Conv + Pool (3x3 kernel, 3 layer (32, 64, 128)
-- Fully Connected Layer (2 layer (128, 32))
+- 3 Conv + MaxPool Layers (kernel_size [3, 3, 3], filters [32, 64, 128])
+- 2 Fully Connected Layers (hidden_size [128, 32])
+- AdamOptimizer
+
+### 3. ConvNetv2
+
+- 5 Conv + MaxPool Layers (kernel_size [7, 5, 3, 3, 3], filters [126, 256, 512, 512, 512]
+- 2 Fully Connected Layers (hidden_size [1024, 256])
 - AdamOptimizer
 
 ## Expertiments

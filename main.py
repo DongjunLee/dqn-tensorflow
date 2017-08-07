@@ -33,6 +33,7 @@ flags.DEFINE_float('learning_rate', 0.0001, 'Batch size. (Must divide evenly int
 flags.DEFINE_string('gym_result_dir', 'gym-results/', 'Directory to put the gym results.')
 flags.DEFINE_string('gym_env', 'CartPole-v0', 'Name of Open Gym\'s enviroment name. (CartPole-v0, CartPole-v1, MountainCar-v0)')
 flags.DEFINE_boolean('step_verbose', False, 'verbose every step count')
+flags.DEFINE_integer('step_verbose_count', 100, 'verbose step count')
 
 FLAGS = flags.FLAGS
 
@@ -64,27 +65,6 @@ def replay_train(mainDQN: DeepQNetwork, targetDQN: DeepQNetwork, train_batch: li
     rewards = np.array([x[2] for x in train_batch[:FLAGS.batch_size]])
     next_states = np.vstack([x[3] for x in train_batch])
     done = np.array([x[4] for x in train_batch[:FLAGS.batch_size]])
-
-    state_length = len(states[0])
-
-    # if FLAGS.frame_size > 1:
-        # states_stack_frame = []
-        # next_states_stack_frame = []
-
-        # for i in range(FLAGS.batch_size):
-            # state_stack_frame = []
-            # next_state_stack_frame = []
-
-            # for j in range(FLAGS.frame_size):
-                # state_stack_frame.append(states[i+j])
-                # next_state_stack_frame.append(next_states[i+j])
-
-            # states_stack_frame.append(state_stack_frame)
-            # next_states_stack_frame.append(next_state_stack_frame)
-
-        # states = np.array(states_stack_frame).reshape((FLAGS.batch_size, state_length, FLAGS.frame_size))
-        # next_states = np.array(next_states_stack_frame).reshape((FLAGS.batch_size, state_length, FLAGS.frame_size))
-
 
     predict_result = targetDQN.predict(next_states)
     Q_target = rewards + FLAGS.discount_rate * np.max(predict_result, axis=1) * ~done # ~False : -1, ~True: -2
@@ -167,6 +147,7 @@ def main():
             step_count = 0
 
             state = env.reset()
+
             e_reward = 0
             model_loss = 0
             avg_reward = np.mean(last_n_game_reward)
@@ -190,7 +171,7 @@ def main():
                 # Get new state and reward from environment
                 next_state, reward, done, _ = env.step(action)
 
-                if done and FLAGS.gym_env.startswith("CartPole"):  # Penalty
+                if done:  # Penalty
                     reward = -1
 
                 if FLAGS.frame_size > 1:
@@ -207,7 +188,7 @@ def main():
                     loss, _ = replay_train(mainDQN, targetDQN, minibatch)
                     model_loss = loss
 
-                    if FLAGS.step_verbose:
+                    if FLAGS.step_verbose and step_count % FLAGS.step_verbose_count == 0:
                         logger.info(f"step_count : {step_count}, reward: {reward} loss: {loss} done: {done}")
 
                 if step_count % FLAGS.target_update_count == 0:

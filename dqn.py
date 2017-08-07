@@ -11,6 +11,7 @@ import tensorflow as tf
 
 from model import MLPv1
 from model import ConvNetv1
+from model import ConvNetv2
 
 
 class DeepQNetwork:
@@ -48,7 +49,8 @@ class DeepQNetwork:
 
             models = {
                 "MLPv1": MLPv1,
-                "ConvNetv1": ConvNetv1
+                "ConvNetv1": ConvNetv1,
+                "ConvNetv2": ConvNetv2
             }
 
             model = models[model_name](self._X, self.output_size,

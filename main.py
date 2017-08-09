@@ -208,7 +208,7 @@ def main():
                 if global_step % FLAGS.save_step_count == 0:
                     checkpoint_path = FLAGS.gym_env + "_" + FLAGS.checkpoint_path + "_f" + str(FLAGS.frame_size)
                     if not os.path.exists(checkpoint_path):
-                        os.mkdirs(checkpoint_path)
+                        os.makedirs(checkpoint_path)
 
                     saver.save(sess, checkpoint_path, global_step=global_step)
                     logger.info(f"save model for global_step: {global_step} ")

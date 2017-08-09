@@ -36,7 +36,7 @@ flags.DEFINE_string('gym_env', 'CartPole-v0', 'Name of Open Gym\'s enviroment na
 flags.DEFINE_boolean('step_verbose', False, 'verbose every step count')
 flags.DEFINE_integer('step_verbose_count', 100, 'verbose step count')
 flags.DEFINE_integer('save_step_count', 2000, 'model save step count')
-flags.DEFINE_string('checkpoint_path', '/checkpoint', 'model save checkpoint_path (prefix is gym_env)')
+flags.DEFINE_string('checkpoint_path', 'checkpoint/', 'model save checkpoint_path (prefix is gym_env)')
 
 FLAGS = flags.FLAGS
 
@@ -206,7 +206,7 @@ def main():
 
                 # save model checkpoint
                 if global_step % FLAGS.save_step_count == 0:
-                    checkpoint_path = FLAGS.gym_env + "_" + FLAGS.checkpoint_path + "_f" + str(FLAGS.frame_size)
+                    checkpoint_path = FLAGS.gym_env + "_f" + str(FLAGS.frame_size) + "_" + FLAGS.checkpoint_path
                     if not os.path.exists(checkpoint_path):
                         os.makedirs(checkpoint_path)
 

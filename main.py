@@ -10,6 +10,7 @@ Notes:
 
 from collections import deque
 import logging
+import os
 import random
 from typing import List
 
@@ -34,6 +35,8 @@ flags.DEFINE_string('gym_result_dir', 'gym-results/', 'Directory to put the gym 
 flags.DEFINE_string('gym_env', 'CartPole-v0', 'Name of Open Gym\'s enviroment name. (CartPole-v0, CartPole-v1, MountainCar-v0)')
 flags.DEFINE_boolean('step_verbose', False, 'verbose every step count')
 flags.DEFINE_integer('step_verbose_count', 100, 'verbose step count')
+flags.DEFINE_integer('save_step_count', 2000, 'model save step count')
+flags.DEFINE_string('checkpoint_path', '/checkpoint', 'model save checkpoint_path (prefix is gym_env)')
 
 FLAGS = flags.FLAGS
 
@@ -134,13 +137,16 @@ def main():
     with tf.Session() as sess:
         mainDQN = DeepQNetwork(sess, FLAGS.model_name, config.input_size, config.output_size, learning_rate=FLAGS.learning_rate, frame_size=FLAGS.frame_size, name="main")
         targetDQN = DeepQNetwork(sess,FLAGS.model_name, config.input_size, config.output_size, frame_size=FLAGS.frame_size, name="target")
+
         sess.run(tf.global_variables_initializer())
+        saver = tf.train.Saver(tf.global_variables())
 
         # initial copy q_net -> target_net
         copy_ops = get_copy_var_ops(dest_scope_name="target",
                                     src_scope_name="main")
         sess.run(copy_ops)
 
+        global_step = 1
         for episode in range(FLAGS.max_episode_count):
             e = 1. / ((episode / 10) + 1)
             done = False
@@ -189,7 +195,7 @@ def main():
                     model_loss = loss
 
                     if FLAGS.step_verbose and step_count % FLAGS.step_verbose_count == 0:
-                        logger.info(f"step_count : {step_count}, reward: {reward} loss: {loss} done: {done}")
+                        logger.info(f" - step_count : {step_count}, reward: {e_reward} loss: {loss}")
 
                 if step_count % FLAGS.target_update_count == 0:
                     sess.run(copy_ops)
@@ -197,6 +203,17 @@ def main():
                 state = next_state
                 e_reward += reward
                 step_count += 1
+
+                # save model checkpoint
+                if global_step % FLAGS.save_step_count == 0:
+                    checkpoint_path = FLAGS.gym_env + "_" + FLAGS.checkpoint_path + "_f" + str(FLAGS.frame_size)
+                    if not os.path.exists(checkpoint_path):
+                        os.mkdirs(checkpoint_path)
+
+                    saver.save(sess, checkpoint_path, global_step=global_step)
+                    logger.info(f"save model for global_step: {global_step} ")
+
+                global_step += 1
 
             logger.info(f"Episode: {episode}  reward: {e_reward}  loss: {model_loss}  consecutive_{consecutive_len}_avg_reward: {avg_reward}")
 
@@ -212,4 +229,7 @@ def main():
 
 
 if __name__ == "__main__":
+    if FLAGS.model_name.startswith("MLP") and FLAGS.frame_size > 1:
+        raise ValueError('do not support frame_size > 1 if model_name is MLP')
+
     main()

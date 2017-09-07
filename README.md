@@ -80,7 +80,7 @@ python main.py -h
 | **Model** : ConvNetv1 | 
 | **Score** : 421.12 (average from 100 consecutive trials) |
 | ![images](images/assault-2000.gif) |
-|  Learn something.. but still stupid.|
+| 2000 Episode (Learn something.. but still stupid) |
 
 | Breakout-ram-v0 |  |  |
 | ------- | ----------- | ------------ |

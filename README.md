@@ -8,6 +8,11 @@
 
 - Test: Atari
 	- more complex ConvNet model
+- use TensorBoard
+	- average loss
+	- average q
+	- average reward (consecutive 100 episode)
+	- episode reward
 
 ## Config
 

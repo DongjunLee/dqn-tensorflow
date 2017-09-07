@@ -70,7 +70,7 @@ def replay_train(mainDQN: DeepQNetwork, targetDQN: DeepQNetwork, train_batch: li
     done = np.array([x[4] for x in train_batch[:FLAGS.batch_size]])
 
     predict_result = targetDQN.predict(next_states)
-    Q_target = rewards + FLAGS.discount_rate * np.max(predict_result, axis=1) * ~done # ~False : -1, ~True: -2
+    Q_target = rewards + FLAGS.discount_rate * np.max(predict_result, axis=1)
 
     X = states
     y = mainDQN.predict(states)
@@ -206,7 +206,7 @@ def main():
 
                 # save model checkpoint
                 if global_step % FLAGS.save_step_count == 0:
-                    checkpoint_path = FLAGS.gym_env + "_f" + str(FLAGS.frame_size) + "_" + FLAGS.checkpoint_path
+                    checkpoint_path = FLAGS.gym_env + "_f" + str(FLAGS.frame_size) + "_" + FLAGS.checkpoint_path + "global_step"
                     if not os.path.exists(checkpoint_path):
                         os.makedirs(checkpoint_path)
 

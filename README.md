@@ -74,6 +74,14 @@ python main.py -h
 
 ### Atari
 
+| Assault-ram-v0 |  
+| ------- | 
+| Maximize your score |  
+| **Model** : ConvNetv1 | 
+| **Score** : 421.12 (average from 100 consecutive trials) |
+| ![images](images/assault-2000.gif) |
+|  Learn something.. but still stupid.|
+
 | Breakout-ram-v0 |  |  |
 | ------- | ----------- | ------------ |
 | Maximize your score |  |  |

@@ -77,7 +77,7 @@ python main.py -h
 | Assault-ram-v0 |  
 | ------- | 
 | Maximize your score |  
-| **Model** : ConvNetv1 | 
+| **Model** : ConvNetv2 | 
 | **Score** : 421.12 (average from 100 consecutive trials) |
 | ![images](images/assault-2000.gif) |
 | 2000 Episode (Learn something.. but still stupid) |

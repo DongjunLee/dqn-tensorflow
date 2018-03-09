@@ -43,8 +43,8 @@ FLAGS = flags.FLAGS
 env = gym.make(FLAGS.gym_env)
 env = gym.wrappers.Monitor(env, directory=FLAGS.gym_env + "_" + FLAGS.gym_result_dir, force=True)
 
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
 
 # Constants defining our neural network
 config = Config(env, FLAGS.gym_env)
@@ -70,7 +70,7 @@ def replay_train(mainDQN: DeepQNetwork, targetDQN: DeepQNetwork, train_batch: li
     done = np.array([x[4] for x in train_batch[:FLAGS.batch_size]])
 
     predict_result = targetDQN.predict(next_states)
-    Q_target = rewards + FLAGS.discount_rate * np.max(predict_result, axis=1)
+    Q_target = rewards + FLAGS.discount_rate * np.max(predict_result, axis=1) * (1 - done)
 
     X = states
     y = mainDQN.predict(states)
